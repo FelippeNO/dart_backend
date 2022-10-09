@@ -25,9 +25,9 @@ class AccountServices {
     final query = await DataBaseClient.connection.query(
         "INSERT INTO users (username, email, password) VALUES (@username, @email, @password)",
         substitutionValues: {
-          "username": "name",
-          "email": "mail",
-          "password": "password",
+          "username": "123",
+          "email": "54342",
+          "password": "password2222",
         });
     return Response(200, body: "true");
   }
