@@ -15,7 +15,7 @@ void main() async {
   app.post('/create_new_user', AccountServices.handleCreateNewUser);
   app.post('/a', AccountServices.aaaa);
 
-  final server = await shelf_io.serve(app, 'localhost', 8080);
+  final server = await shelf_io.serve(app, '0.0.0.0', 8080);
 
   print('Serving at http://${server.address.host}:${server.port}');
 }
