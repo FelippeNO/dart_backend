@@ -1,10 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:postgres/postgres.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
-import 'dart:convert';
 
 import 'database/database_client.dart';
 
@@ -12,10 +12,10 @@ void main() async {
   await DataBaseClient.initializeDatabase();
 
   final Router app = Router();
-  app.get('/get_user_name_by_id/<user_id>', AccountServices.handleGetUserNameById);
-  app.get('/get_user_age_by_id/<user_id>', AccountServices.handleGetUserAgeById);
-  app.post('/create_new_user', AccountServices.handleCreateNewUser);
-  app.post('/a', AccountServices.aaaa);
+//  app.get('/get_user_name_by_id/<user_id>', AccountServices.handleGetUserNameById);
+  // app.get('/get_user_age_by_id/<user_id>', AccountServices.handleGetUserAgeById);
+  app.post('/multiply_numbers', AccountServices.handleCreateNewUser);
+  // app.post('/a', AccountServices.aaaa);
 
   var env = Platform.environment;
   var port = env.entries.firstWhere((element) => element.key == 'PORT', orElse: () => MapEntry('PORT', '8080'));
@@ -23,6 +23,39 @@ void main() async {
   final server = await shelf_io.serve(app, '0.0.0.0', int.parse(port.value));
 
   print('Serving at http://${server.address.host}:${server.port}');
+}
+
+class NumbersService {
+  static Future<Response> addingMultipliedNumers(Request request) async {
+    final String query = await request.readAsString();
+    final decodedBody = jsonDecode(query);
+
+    int number1 = int.parse(decodedBody[NumbersTable.number1]);
+    int number2 = int.parse(decodedBody[NumbersTable.number2]);
+    int multiply = number1 * number2;
+
+    await NumbersRepository.addingMultipliedNumers(
+      number1: number1,
+      number2: number2,
+      multiply: multiply,
+    );
+
+    return Response(200, body: "NUMBERS INCLUDED!");
+  }
+}
+
+class NumbersRepository {
+  static Future<bool> addingMultipliedNumers(
+      {required int number1, required int number2, required int multiply}) async {
+    await DataBaseClient.connection.query(
+        "INSERT INTO ${NumbersTable.tablename} (${NumbersTable.number1}, ${NumbersTable.number2}, ${NumbersTable.multiply}) VALUES (@${NumbersTable.number1}, @${NumbersTable.number2}, @${NumbersTable.multiply})",
+        substitutionValues: {
+          NumbersTable.number1: number1,
+          NumbersTable.number2: number2,
+          NumbersTable.multiply: multiply,
+        });
+    return true;
+  }
 }
 
 class AccountServices {
@@ -94,4 +127,26 @@ class AccountRepository {
     });
     return true;
   }
+}
+
+class NumbersTable {
+  static const String tablename = "numbers";
+  static const String id = "id";
+  static const String number1 = "number1";
+  static const String number2 = "number2";
+  static const String multiply = "multiply";
+}
+
+class NumbersEntity {
+  final int id;
+  final int number1;
+  final int number2;
+  final int multiply;
+
+  NumbersEntity({
+    required this.id,
+    required this.number1,
+    required this.number2,
+    required this.multiply,
+  });
 }
