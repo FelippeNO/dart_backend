@@ -34,19 +34,18 @@ class NumbersService {
     int number2 = int.parse(decodedBody[NumbersTable.number2]);
     int multiply = number1 * number2;
 
-    await NumbersRepository.addingMultipliedNumers(
+    int multiplyRequest = await NumbersRepository.addingMultipliedNumers(
       number1: number1,
       number2: number2,
       multiply: multiply,
     );
 
-    return Response(200, body: "NUMBERS INCLUDED!");
+    return Response(200, body: "Multiplicação: " + multiplyRequest.toString());
   }
 }
 
 class NumbersRepository {
-  static Future<bool> addingMultipliedNumers(
-      {required int number1, required int number2, required int multiply}) async {
+  static Future<int> addingMultipliedNumers({required int number1, required int number2, required int multiply}) async {
     await DataBaseClient.connection.query(
         "INSERT INTO ${NumbersTable.tablename} (${NumbersTable.number1}, ${NumbersTable.number2}, ${NumbersTable.multiply}) VALUES (@${NumbersTable.number1}, @${NumbersTable.number2}, @${NumbersTable.multiply})",
         substitutionValues: {
@@ -54,7 +53,7 @@ class NumbersRepository {
           NumbersTable.number2: number2,
           NumbersTable.multiply: multiply,
         });
-    return true;
+    return multiply;
   }
 }
 
