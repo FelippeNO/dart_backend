@@ -1,10 +1,12 @@
+import 'dart:io';
+
 import 'package:postgres/postgres.dart';
 
 class DataBaseClient {
-  static const String _host = String.fromEnvironment('HOST');
-  static const String _database = String.fromEnvironment('DATABASE');
-  static const String _username = String.fromEnvironment('USERNAME');
-  static const String _password = String.fromEnvironment('PASSWORD');
+  static final String _host = Platform.environment['HOST'] as String;
+  static final String _database = Platform.environment['DATABASE'] as String;
+  static final String _username = Platform.environment['USERNAME'] as String;
+  static final String _password = Platform.environment['PASSWORD'] as String;
   static const int _port = 5432;
 
   static PostgreSQLConnection get connection => _connection;
