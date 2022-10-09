@@ -4,6 +4,8 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
 import 'dart:convert';
 
+import 'database/database_client.dart';
+
 void main() async {
   await DataBaseClient.initializeDatabase();
 
@@ -11,6 +13,7 @@ void main() async {
   app.get('/get_user_name_by_id/<user_id>', AccountServices.handleGetUserNameById);
   app.get('/get_user_age_by_id/<user_id>', AccountServices.handleGetUserAgeById);
   app.post('/create_new_user', AccountServices.handleCreateNewUser);
+  app.post('/a', AccountServices.aaaa);
 
   final server = await shelf_io.serve(app, 'localhost', 8080);
 
@@ -18,6 +21,17 @@ void main() async {
 }
 
 class AccountServices {
+  static Future<Response> aaaa(Request request) async {
+    final query = await DataBaseClient.connection.query(
+        "INSERT INTO users (username, email, password) VALUES (@username, @email, @password)",
+        substitutionValues: {
+          "username": "name",
+          "email": "mail",
+          "password": "password",
+        });
+    return Response(200, body: "true");
+  }
+
   static Future<Response> handleGetUserNameById(Request request) async {
     final userId = request.params['user_id'];
     String userName = await AccountRepository.getUserNameById(userId!);
@@ -75,13 +89,4 @@ class AccountRepository {
     });
     return true;
   }
-}
-
-class DataBaseClient {
-  static PostgreSQLConnection get connection => _connection;
-
-  static final PostgreSQLConnection _connection =
-      PostgreSQLConnection("localhost", 5432, "dart", username: "postgres", password: "postgres");
-
-  static Future initializeDatabase() async => await _connection.open();
 }
