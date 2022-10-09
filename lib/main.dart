@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:postgres/postgres.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -15,7 +17,10 @@ void main() async {
   app.post('/create_new_user', AccountServices.handleCreateNewUser);
   app.post('/a', AccountServices.aaaa);
 
-  final server = await shelf_io.serve(app, 'https://backend-dart-test.herokuapp.com/', 8080);
+  var env = Platform.environment;
+  var port = env.entries.firstWhere((element) => element.key == 'PORT', orElse: () => MapEntry('PORT', '8080'));
+
+  final server = await shelf_io.serve(app, '0.0.0.0', int.parse(port.value));
 
   print('Serving at http://${server.address.host}:${server.port}');
 }
