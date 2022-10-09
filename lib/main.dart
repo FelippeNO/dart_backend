@@ -14,7 +14,7 @@ void main() async {
   final Router app = Router();
 //  app.get('/get_user_name_by_id/<user_id>', AccountServices.handleGetUserNameById);
   // app.get('/get_user_age_by_id/<user_id>', AccountServices.handleGetUserAgeById);
-  app.post('/multiply_numbers', AccountServices.handleCreateNewUser);
+  app.post('/multiply_numbers', NumbersService.addingMultipliedNumers);
   // app.post('/a', AccountServices.aaaa);
 
   var env = Platform.environment;
