@@ -13,55 +13,62 @@ void main() async {
   final Router app = Router();
 //  app.get('/get_user_name_by_id/<user_id>', AccountServices.handleGetUserNameById);
   // app.get('/get_user_age_by_id/<user_id>', AccountServices.handleGetUserAgeById);
-  app.post('/multiply_numbers', NumbersService.addingMultipliedNumers);
+  app.post('/multiply_numbers', NumbersController.createNumberEntity);
   // app.post('/a', AccountServices.aaaa);
 
   var env = Platform.environment;
   var port = env.entries.firstWhere((element) => element.key == 'PORT', orElse: () => MapEntry('PORT', '8080'));
 
-  final server = await shelf_io.serve(app, '0.0.0.0', int.parse(port.value));
+  final server = await shelf_io.serve(
+      app,
+      // '0.0.0.0',
+      "localhost",
+      int.parse(port.value));
 
   print('Serving at http://${server.address.host}:${server.port}');
 }
 
-class NumbersService {
-  static Future<Response> addingMultipliedNumers(Request request) async {
+class NumbersController {
+  static Future<Response> createNumberEntity(Request request) async {
     final String query = await request.readAsString();
     final decodedBody = jsonDecode(query);
 
-    int number1 = int.parse(decodedBody[NumbersTable.number1]);
-    int number2 = int.parse(decodedBody[NumbersTable.number2]);
-    int multiply = number1 * number2;
+    int number1 = int.parse(decodedBody["number1"]);
+    int number2 = int.parse(decodedBody["number2"]);
 
-    int multiplyRequest = await NumbersRepository.addingMultipliedNumers(
-      number1: number1,
-      number2: number2,
-      multiply: multiply,
-    );
+    CreatingNumber<NumbersTable> creatingNumber =
+        CreatingNumber(multiply: number1 * number2, number1: number1, number2: number2);
+    int multiplyRequest = await CreateNumberEntityService.call(creatingNumberEntity: creatingNumber);
 
     return Response(200, body: "Multiplicação: " + multiplyRequest.toString());
   }
 }
 
+class CreateNumberEntityService {
+  static Future<int> call({required CreatingNumber<NumbersTable> creatingNumberEntity}) async =>
+      await NumbersRepository.createNumberEntity(creatingNumberEntity: creatingNumberEntity);
+}
+
 class NumbersRepository {
-  static Future<int> addingMultipliedNumers({required int number1, required int number2, required int multiply}) async {
-    await DataBaseClient.connection.query(
-        "INSERT INTO ${NumbersTable.tablename} (${NumbersTable.number1}, ${NumbersTable.number2}, ${NumbersTable.multiply}) VALUES (@${NumbersTable.number1}, @${NumbersTable.number2}, @${NumbersTable.multiply})",
-        substitutionValues: {
-          NumbersTable.number1: number1,
-          NumbersTable.number2: number2,
-          NumbersTable.multiply: multiply,
-        });
-    return multiply;
+  static Future<int> createNumberEntity({required CreatingNumber<NumbersTable> creatingNumberEntity}) async {
+    await DataBaseClient.insertInto<NumbersTable>(insertionObject: creatingNumberEntity, table: NumbersTable());
+    return 0;
   }
 }
 
-class NumbersTable {
-  static const String tablename = "numbers";
-  static const String id = "id";
-  static const String number1 = "number1";
-  static const String number2 = "number2";
-  static const String multiply = "multiply";
+class NumbersTable extends Table {
+  static const String _tablename = "numbers";
+  static const List<String> _entityAttributes = ["id", "number1", "number2", "multiply"];
+  static const List<String> _insertionAttributes = ["number1", "number2", "multiply"];
+
+  @override
+  String get tableName => _tablename;
+
+  @override
+  List<String> get entityAttributes => _entityAttributes;
+
+  @override
+  List<String> get insertionAttributes => _insertionAttributes;
 }
 
 class NumbersEntity {
@@ -76,6 +83,27 @@ class NumbersEntity {
     required this.number2,
     required this.multiply,
   });
+}
+
+class CreatingNumber<NumbersTable> extends InsertionObject {
+  final int number1;
+  final int number2;
+  final int multiply;
+
+  static Type get type => CreatingNumber;
+
+  CreatingNumber({
+    required this.number1,
+    required this.number2,
+    required this.multiply,
+  });
+
+  @override
+  Map<String, dynamic> get insertionMap => {
+        "number1": number1,
+        "number2": number2,
+        "multiply": multiply,
+      };
 }
 
 
