@@ -1,7 +1,7 @@
-import 'dart:io';
-
 import 'package:postgres/postgres.dart';
 
+import '../core/models/insertion_object.dart';
+import '../core/models/table.dart';
 import '../core/utils/extensions.dart';
 
 class DataBaseClient {
@@ -24,20 +24,34 @@ class DataBaseClient {
 
   static Future initializeDatabase() async => await _connection.open();
 
-  static insertInto<T>({required Table table, required InsertionObject insertionObject}) async {
+  static Future<String> insertInto<T>({required Table table, required InsertionObject insertionObject}) async {
+    TableModelIntegrity.verify(table);
+
     String insertionAttributesString = ConvertTableString.getInsertionAttributesString(table);
     String valuesString = ConvertTableString.getInsertionValuesString(table);
-    await _connection.query("INSERT INTO ${table.tableName} ($insertionAttributesString) VALUES ($valuesString)",
-        substitutionValues: insertionObject.insertionMap);
+    String primaryKey = table.primaryKey;
+    String insertedRowPrimaryKey = await _connection.transaction((ctx) async {
+      PostgreSQLResult result = await ctx.query(
+          "INSERT INTO ${table.tableName} ($insertionAttributesString) VALUES ($valuesString) RETURNING $primaryKey",
+          substitutionValues: insertionObject.insertionMap);
+      return result[0][0].toString();
+    });
+    return insertedRowPrimaryKey;
   }
-}
 
-abstract class InsertionObject extends Object {
-  Map<String, dynamic> get insertionMap;
-}
+  static Future<dynamic> getById({required Table table, required String objectId}) async {
+    TableModelIntegrity.verify(table);
+    String primaryKey = table.primaryKey;
+    String result = await _connection.transaction((ctx) async {
+      final Map<String, dynamic> mapCollumns = {};
 
-abstract class Table extends Object {
-  String get tableName;
-  List<String> get entityAttributes;
-  List<String> get insertionAttributes;
+      for (var collumn in table.entityAttributes) {
+        PostgreSQLResult value =
+            await ctx.query("SELECT $collumn FROM ${table.tableName} WHERE ${table.tableName}.$primaryKey = $objectId");
+        mapCollumns[collumn] = value[0][0];
+      }
+      return mapCollumns.toString();
+    });
+    return result;
+  }
 }

@@ -1,11 +1,10 @@
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
 
 import 'database/database_client.dart';
+import 'numbers_module/domain/controllers/numbers_controller.dart';
 
 void main() async {
   await DataBaseClient.initializeDatabase();
@@ -14,6 +13,7 @@ void main() async {
 //  app.get('/get_user_name_by_id/<user_id>', AccountServices.handleGetUserNameById);
   // app.get('/get_user_age_by_id/<user_id>', AccountServices.handleGetUserAgeById);
   app.post('/multiply_numbers', NumbersController.createNumberEntity);
+  app.get('/get_numbers_by_id', NumbersController.getNumbersById);
   // app.post('/a', AccountServices.aaaa);
 
   var env = Platform.environment;
@@ -28,83 +28,11 @@ void main() async {
   print('Serving at http://${server.address.host}:${server.port}');
 }
 
-class NumbersController {
-  static Future<Response> createNumberEntity(Request request) async {
-    final String query = await request.readAsString();
-    final decodedBody = jsonDecode(query);
 
-    int number1 = int.parse(decodedBody["number1"]);
-    int number2 = int.parse(decodedBody["number2"]);
 
-    CreatingNumber<NumbersTable> creatingNumber =
-        CreatingNumber(multiply: number1 * number2, number1: number1, number2: number2);
-    int multiplyRequest = await CreateNumberEntityService.call(creatingNumberEntity: creatingNumber);
 
-    return Response(200, body: "Multiplicação: " + multiplyRequest.toString());
-  }
-}
 
-class CreateNumberEntityService {
-  static Future<int> call({required CreatingNumber<NumbersTable> creatingNumberEntity}) async =>
-      await NumbersRepository.createNumberEntity(creatingNumberEntity: creatingNumberEntity);
-}
 
-class NumbersRepository {
-  static Future<int> createNumberEntity({required CreatingNumber<NumbersTable> creatingNumberEntity}) async {
-    await DataBaseClient.insertInto<NumbersTable>(insertionObject: creatingNumberEntity, table: NumbersTable());
-    return 0;
-  }
-}
-
-class NumbersTable extends Table {
-  static const String _tablename = "numbers";
-  static const List<String> _entityAttributes = ["id", "number1", "number2", "multiply"];
-  static const List<String> _insertionAttributes = ["number1", "number2", "multiply"];
-
-  @override
-  String get tableName => _tablename;
-
-  @override
-  List<String> get entityAttributes => _entityAttributes;
-
-  @override
-  List<String> get insertionAttributes => _insertionAttributes;
-}
-
-class NumbersEntity {
-  final int id;
-  final int number1;
-  final int number2;
-  final int multiply;
-
-  NumbersEntity({
-    required this.id,
-    required this.number1,
-    required this.number2,
-    required this.multiply,
-  });
-}
-
-class CreatingNumber<NumbersTable> extends InsertionObject {
-  final int number1;
-  final int number2;
-  final int multiply;
-
-  static Type get type => CreatingNumber;
-
-  CreatingNumber({
-    required this.number1,
-    required this.number2,
-    required this.multiply,
-  });
-
-  @override
-  Map<String, dynamic> get insertionMap => {
-        "number1": number1,
-        "number2": number2,
-        "multiply": multiply,
-      };
-}
 
 
 // class AccountServices {
