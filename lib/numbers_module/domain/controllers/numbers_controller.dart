@@ -23,12 +23,12 @@ class NumbersController {
     return Response(200, body: "Multiplicação: ${number1 * number2}");
   }
 
-  static Future<Response> getNumbersById(Request request) async {
-    final String query = await request.readAsString();
-    final decodedBody = jsonDecode(query);
-    String numberId = decodedBody["numberId"];
-    String numbers = await GetNumbersByIdService.call(numbersId: numberId);
+  // static Future<Response> getNumbersById(Request request) async {
+  //   final String query = await request.readAsString();
+  //   final decodedBody = jsonDecode(query);
+  //   String numberId = decodedBody["numberId"];
+  //   String numbers = await GetNumbersByIdService.call(numbersId: numberId);
 
-    return Response(200, body: numbers);
-  }
+  //   return Response(200, body: numbers);
+  // }
 }

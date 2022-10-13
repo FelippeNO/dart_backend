@@ -1,29 +1,35 @@
 import 'dart:io';
 
+import 'package:dart_backend/user_module/domain/controllers/users_controller.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
 
+import 'core/routes/core_routes.dart';
 import 'database/database_client.dart';
 import 'numbers_module/domain/controllers/numbers_controller.dart';
 
 void main() async {
   await DataBaseClient.initializeDatabase();
+  await CoreRoutes.initializeRoutes();
 
-  final Router app = Router();
+  final Router app = CoreRoutes.routes;
 //  app.get('/get_user_name_by_id/<user_id>', AccountServices.handleGetUserNameById);
   // app.get('/get_user_age_by_id/<user_id>', AccountServices.handleGetUserAgeById);
-  app.post('/multiply_numbers', NumbersController.createNumberEntity);
-  app.get('/get_numbers_by_id', NumbersController.getNumbersById);
+  //app.post('/multiply_numbers', NumbersController.createNumberEntity);
+  // app.get('/get_numbers_by_id', NumbersController.getNumbersById);
+  //app.post('/create_user', UsersController.createUser);
+
   // app.post('/a', AccountServices.aaaa);
 
   var env = Platform.environment;
   var port = env.entries.firstWhere((element) => element.key == 'PORT', orElse: () => MapEntry('PORT', '8080'));
 
   final server = await shelf_io.serve(
-      app,
-      // '0.0.0.0',
-      "localhost",
-      int.parse(port.value));
+    app,
+    // '0.0.0.0',
+    "localhost",
+    int.parse(port.value),
+  );
 
   print('Serving at http://${server.address.host}:${server.port}');
 }

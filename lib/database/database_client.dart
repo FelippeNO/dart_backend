@@ -10,10 +10,15 @@ class DataBaseClient {
   // static final String _username = Platform.environment['USERNAME'] as String;
   // static final String _password = Platform.environment['PASSWORD'] as String;
 
-  static final String _host = "dart.cvt4v5njnonp.us-east-1.rds.amazonaws.com";
-  static final String _database = "dart_backend";
+  // static final String _host = "dart.cvt4v5njnonp.us-east-1.rds.amazonaws.com";
+  // static final String _database = "dart_backend";
+  // static final String _username = "postgres";
+  // static final String _password = "50milhoesdeleoes";
+
+  static final String _host = "db.fywgooxpfczruhpnylst.supabase.co";
+  static final String _database = "postgres";
   static final String _username = "postgres";
-  static final String _password = "50milhoesdeleoes";
+  static final String _password = "hAVdTGaQMHVNBPFS,.@";
 
   static const int _port = 5432;
 
@@ -39,19 +44,32 @@ class DataBaseClient {
     return insertedRowPrimaryKey;
   }
 
-  static Future<dynamic> getById({required Table table, required String objectId}) async {
+  static Future<Map<String, dynamic>> getEntityByField(
+      {required Table table, required String field, required String fieldValue}) async {
+    final Map<String, dynamic> mapCollumns = {};
     TableModelIntegrity.verify(table);
-    String primaryKey = table.primaryKey;
-    String result = await _connection.transaction((ctx) async {
-      final Map<String, dynamic> mapCollumns = {};
-
+    await _connection.transaction((ctx) async {
       for (var collumn in table.entityAttributes) {
-        PostgreSQLResult value =
-            await ctx.query("SELECT $collumn FROM ${table.tableName} WHERE ${table.tableName}.$primaryKey = $objectId");
+        PostgreSQLResult value = await ctx.query(
+            "SELECT $collumn FROM ${table.tableName} WHERE ${table.tableName}.$field = @fieldValue",
+            substitutionValues: {'fieldValue': fieldValue});
         mapCollumns[collumn] = value[0][0];
       }
-      return mapCollumns.toString();
     });
-    return result;
+    return mapCollumns;
+  }
+
+  static Future<dynamic> getOneFieldResultByField(
+      {required Table table,
+      required String field,
+      required String fieldValueToMatch,
+      required String fieldToReturn}) async {
+    TableModelIntegrity.verify(table);
+    String result = await _connection.transaction((ctx) async {
+      await ctx.query(
+          "SELECT $fieldToReturn FROM ${table.tableName} WHERE ${table.tableName}.$field = @fieldValueToMatch",
+          substitutionValues: {"fieldValueToMatch": fieldValueToMatch});
+    });
+    return result[0][0];
   }
 }

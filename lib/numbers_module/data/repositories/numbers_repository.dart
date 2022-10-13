@@ -10,8 +10,8 @@ class NumbersRepository {
     return id;
   }
 
-  static Future<String> getNumbersById({required String numbersId}) async {
-    String result = await DataBaseClient.getById(table: NumbersTable(), objectId: numbersId);
-    return result;
-  }
+  // static Future<String> getNumbersById({required String numbersId}) async {
+  //   String result = await DataBaseClient.getById(table: NumbersTable(), objectId: numbersId);
+  //   return result;
+  // }
 }

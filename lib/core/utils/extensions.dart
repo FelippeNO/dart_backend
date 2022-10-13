@@ -1,3 +1,8 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
+import 'package:uuid/uuid.dart';
+
 import '../error/table_integrity_exceptions.dart';
 import '../models/table.dart';
 
@@ -35,5 +40,19 @@ class TableModelIntegrity {
       throw InsertionHasMoreAttributesThanEntityException;
     }
     throw EntityDoNotContainPrimaryKeyNameException;
+  }
+}
+
+class CoreKeys {
+  static String generateUUID() {
+    final uuid = Uuid();
+    String newUserId = uuid.v4();
+    return newUserId;
+  }
+
+  static String hashPassword(String password) {
+    var bytes = utf8.encode(password); // data being hashed
+    var digest = sha256.convert(bytes);
+    return digest.toString();
   }
 }
